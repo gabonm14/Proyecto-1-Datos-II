@@ -28,6 +28,6 @@ public:
     Node* find(T data);
 };
 
-#include "MPointerList.tpp"
+#include "MPointerList.cpp"
 #endif
 

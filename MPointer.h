@@ -21,13 +21,67 @@ public:
     static MPointer<T> New();
     T& operator*();  // Sobrecarga del operador *
     T* operator&();  // Sobrecarga del operador &
-
     MPointer<T>& operator=(const T& value);  // Asignación de valor
     MPointer<T>& operator=(const MPointer<T>& other);  // Asignación entre MPointers
-
     int getId() const;
 };
 
-#include "MPointer.tpp"  // Implementación en un archivo separado para templates
-#endif
+// Inicialización del puntero gc
+template <typename T>
+MPointerGC* MPointer<T>::gc = MPointerGC::getInstance();
 
+// Constructor
+template <typename T>
+MPointer<T>::MPointer() : ptr(new T), id(gc->registerPointer(ptr)) {}
+
+// Destructor
+template <typename T>
+MPointer<T>::~MPointer() {
+    gc->unregisterPointer(ptr);
+    delete ptr;
+}
+
+
+template <typename T>
+MPointer<T> MPointer<T>::New() {
+    return MPointer<T>();
+}
+
+// Sobrecarga del operador *
+template <typename T>
+T& MPointer<T>::operator*() {
+    return *ptr;
+}
+
+// Sobrecarga del operador &
+template <typename T>
+T* MPointer<T>::operator&() {
+    return ptr;
+}
+
+// Asignación de valor
+template <typename T>
+MPointer<T>& MPointer<T>::operator=(const T& value) {
+    *ptr = value;
+    return *this;
+}
+
+// Asignación entre MPointers
+template <typename T>
+MPointer<T>& MPointer<T>::operator=(const MPointer<T>& other) {
+    if (this != &other) {
+        gc->unregisterPointer(ptr);
+        ptr = other.ptr;
+        id = other.id;
+        gc->registerPointer(ptr);
+    }
+    return *this;
+}
+
+// Obtener el ID del puntero
+template <typename T>
+int MPointer<T>::getId() const {
+    return id;
+}
+
+#endif
